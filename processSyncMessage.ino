@@ -58,9 +58,10 @@ void processSyncMessage() {
 
 //      RTC.adjust(DateTime(pctime)); // Sync Arduino clock to the time received on the serial port
 
-      #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(RTC.get());
-      #endif
+#endif
+/*
     } else if (c == TIMEZONE_HEADER) {
       uint8_t NewTimeZone = 0;
       int8_t TZ_Neg = 1;
@@ -81,6 +82,7 @@ void processSyncMessage() {
       //#ifdef DEBUG
       Serial.println(NewTimeZone);
       //#endif
+*/
     }
   }
 }
