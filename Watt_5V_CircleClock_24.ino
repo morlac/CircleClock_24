@@ -1,4 +1,4 @@
-//#define DEBUG
+#define DEBUG
 
 // http://playground.arduino.cc/Code/time
 
@@ -24,20 +24,22 @@ ISR(TIMER1_OVF_vect) {
 #endif
 
 #include <Wire.h>
-//#include "RTClib.h"
 #include <Time.h>
+#include <TimeLib.h>
+#include <Timezone.h>
 #include <DS1307RTC.h>
 
-#include "FastSPI_LED2.h"
+//#include "FastSPI_LED2.h"
+#include <FastLED.h>
 #define NUM_LEDS 24
 struct CRGB leds[NUM_LEDS];
 
-//RTC_DS1307 RTC;
-//DateTime now, last_now;
-static time_t prevtime, current_time;
+static time_t utc, current_time;
 
+/*
 int16_t TimeZone;
 uint16_t TimeZoneAddr = 1;
+*/
 
 boolean BrightnessChanged = false;
 uint8_t Brightness = 0x10;
@@ -56,6 +58,18 @@ uint8_t LastButtonDownState = HIGH;
 uint8_t led_count = 0;
 bool led_on = false;
 
+/*
+TimeChangeRule euCEST = {"CEST", Last, Sun, Mar, 2, +120};
+TimeChangeRule euCET = {"CET", Last, Sun, Oct, 2, +60};
+
+Timezone euDE(euCEST, euCET);
+*/
+
+Timezone euDE(100);
+
+/**
+ * 
+ */
 void setup() {
   pinMode(ButtonUpPin, INPUT_PULLUP);
   pinMode(ButtonDownPin, INPUT_PULLUP);
@@ -81,7 +95,6 @@ void setup() {
     RTC.adjust(DateTime(__DATE__, __TIME__));
   }
 */
-//  last_now = now = DateTime(RTC.now().unixtime() + TimeZone);
 
   TWBR=12;
 
@@ -107,8 +120,16 @@ void setup() {
 
   /* Enable the timer overlow interrupt. */
 //  TIMSK1=0x01;
+
+/*
+  // run only once to save Timezone to EEPROM
+  euDE.writeRules(100);
+*/
 }
 
+/**
+ * 
+ */
 void loop() {
   if(Serial.available()) {
     processSyncMessage();
@@ -162,23 +183,22 @@ void loop() {
   }
 
 
-  if (prevtime != now()) {
-    prevtime = now();
+  if (utc != now()) {
+    utc = now();
 
-    // fetch TimeZone from EEPROM
-    while (!eeprom_is_ready());
-    TimeZone = eeprom_read_word((uint16_t*)TimeZoneAddr);
-  
-    current_time = prevtime + TimeZone;
+//    current_time = prevtime + TimeZone;
 
-    current_time += IsDst(hour(current_time), day(current_time), month(current_time), weekday(current_time)) ? 60 * 60 : 0;
+//    current_time += IsDst(hour(current_time), day(current_time), month(current_time), weekday(current_time)) ? 60 * 60 : 0;
 
-    showCircleClock(current_time);
+//    showCircleClock(current_time);
 
+    showCircleClock(euDE.toLocal(utc));
+/*
     // swith LED
     if ((second() % 10 == 0) && (led_count == 0)) {
       LED_on();
     }
+*/
   }
 
   delay(250);
@@ -192,3 +212,4 @@ void loop() {
 
 //  enterSleep();
 }
+
