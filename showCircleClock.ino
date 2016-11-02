@@ -1,3 +1,6 @@
+/**
+ * 
+ */
 void showCircleClock(time_t dt) {
   memset(leds, 0,  NUM_LEDS * sizeof(struct CRGB));
 //  LEDS.clear();
@@ -17,6 +20,9 @@ void showCircleClock(time_t dt) {
 
   uint8_t MinuteLED = NUM_LEDS * M / 60;
   uint8_t SecondLED = NUM_LEDS * S / 60;
+
+  float SecondLED_F = (NUM_LEDS * S / 60.0) - SecondLED;
+
   uint8_t HourLED_2 = (int8_t)(HourLED_1 < (NUM_LEDS-1) ? HourLED_1 + 1 : HourLED_1 - (NUM_LEDS-1));
 
 #ifdef DEBUG
@@ -29,8 +35,18 @@ void showCircleClock(time_t dt) {
   leds[(uint8_t)(HourLED_1)].r = (uint8_t)(255 * (1 - (HourLED_1 - (uint8_t)HourLED_1)));
   leds[HourLED_2].r = (uint8_t)(255 * (HourLED_1 - (uint8_t)HourLED_1));
   leds[MinuteLED].g = 255;
-  leds[SecondLED].b = S % 2 == 0 ? 255 : 128;
-  
+
+//  leds[SecondLED].b = S % 2 == 0 ? 255 : 128;
+
+  leds[SecondLED].b = 255 * SecondLED_F;
+  for (uint8_t c = 1; c <= (uint8_t)(NUM_LEDS / 2); c++) {
+    int8_t d = SecondLED - c;
+    d += (d < 0 ? 24 : 0);
+    leds[d].b = 255 - (uint8_t)(255 / (NUM_LEDS / 2) * c);
+  }
+
+//  if () {}
+
   LEDS.show();
 }
 
